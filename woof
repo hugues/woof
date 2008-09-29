@@ -178,6 +178,12 @@ class FileServHTTPRequestHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                         self.wfile.write (c)
                      else:
                         datafile.close ()
+                        print '%s - - [%s] "%s %s %s" Complete -' % (
+                            self.client_address[0],
+                            self.log_date_time_string(),
+                            self.command,
+                            self.path,
+                            self.request_version)
                         break
             except:
                print >>sys.stderr, "Connection broke. Aborting"
