@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 #
 #  woof -- an ad-hoc single file webserver
 #  Copyright (C) 2004 Simon Budig  <simon@budig.de>
@@ -21,6 +22,7 @@
 # Darwin support with the help from Mat Caughron, <mat@phpconsulting.com>
 # Solaris support by Colin Marquardt, <colin.marquardt@zmd.de>
 # FreeBSD support with the help from Andy Gimblett, <A.M.Gimblett@swansea.ac.uk>
+# Cygwin support by Stefan Reichör <stefan@xsteve.at>
 
 import sys, os, popen2, signal, select, socket, getopt, commands
 import urllib, BaseHTTPServer
@@ -35,6 +37,17 @@ compressed = True
 # reached from the outside. Quite nasty problem actually.
 
 def find_ip ():
+   if sys.platform == "cygwin":
+      ipcfg = os.popen("ipconfig").readlines()
+      for l in ipcfg:
+         try:
+            candidat = l.split(":")[1].strip()
+            if candidat[0].isdigit():
+               break
+         except:
+            pass
+      return candidat
+
    os.environ["PATH"] = "/sbin:/usr/sbin:/usr/local/sbin:" + os.environ["PATH"]
    platform = os.uname()[0];
 
@@ -105,9 +118,9 @@ class FileServHTTPRequestHandler (BaseHTTPServer.BaseHTTPRequestHandler):
       self.path = urllib.quote (urllib.unquote (self.path))
       location = "/" + urllib.quote (os.path.basename (self.filename))
       if os.path.isdir (self.filename):
-	 if compressed:
+         if compressed:
             location += ".tar.gz"
-	 else:
+         else:
             location += ".tar"
 
       if self.path != location:
@@ -143,10 +156,10 @@ class FileServHTTPRequestHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             datafile = open (self.filename)
          elif os.path.isdir (self.filename):
             os.environ['woof_dir'], os.environ['woof_file'] = os.path.split (self.filename)
-	    if compressed:
-	       arg = 'z'
-	    else:
-	       arg = ''
+            if compressed:
+               arg = 'z'
+            else:
+               arg = ''
             child = popen2.Popen3 ('cd "$woof_dir";tar c%sf - "$woof_file"' % arg)
             datafile = child.fromchild
 
@@ -227,8 +240,8 @@ def usage (defport, defmaxdown, errmsg = None):
         [main]
         port = 8008
         count = 2
-	ip = 127.0.0.1
-	compressed = true
+        ip = 127.0.0.1
+        compressed = true
    """ % (name, name, name, defmaxdown, defport)
    if errmsg:
       print >>sys.stderr, errmsg
@@ -275,7 +288,7 @@ def main ():
                raise ValueError
          except ValueError:
             usage (defaultport, defaultmaxdown, 
-	           "invalid download count: %r. "
+                   "invalid download count: %r. "
                    "Please specify an integer >= 0." % val)
 
       elif option == '-i':
@@ -286,7 +299,7 @@ def main ():
             port = int (val)
          except ValueError:
             usage (defaultport, defaultmaxdown,
-	           "invalid port number: %r. Please specify an integer" % val)
+                   "invalid port number: %r. Please specify an integer" % val)
 
       elif option == '-s':
          filenames.append (__file__)
