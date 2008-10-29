@@ -27,6 +27,7 @@
 """ woof -- an ad-hoc single file webserver"""
 
 import sys, os, popen2, signal, select, socket, getopt, commands
+import stat
 import urllib, BaseHTTPServer
 import ConfigParser
 
@@ -97,6 +98,24 @@ def find_ip ():
         return None
 
     return ip_addr
+
+def is_owner(stf):
+    """Return true if the file belongs to the current user"""
+    return stf.st_uid == os.getuid()
+
+def is_group(stf):
+    """Return true if the file belongs to the group of current user"""
+    return stf.st_gid == os.getgid()
+
+def is_read(filename):
+    """ Check whether a file is readable """
+    result_st = os.stat(filename)
+    if is_owner(result_st):
+        return (result_st.st_mode & stat.S_IRUSR)
+    elif is_group(result_st):
+        return (result_st.st_mode & stat.S_IRGRP)
+    else:
+        return (result_st.st_mode & stat.S_IROTH)
 
 class FileServHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     """
@@ -335,6 +354,10 @@ def main ():
     if not (os.path.isfile (filename) or os.path.isdir (filename)):
         usage (defaultport, defaultmaxdown,
              "%s: Neither file nor directory" % filenames[0])
+    if not is_read(filename):
+        usage (defaultport, defaultmaxdown,
+               "%s: Check read permission" % filenames[0])
+
     serve_files (filename, maxdown, ip_addr, port)
 
     # wait for child processes to terminate
