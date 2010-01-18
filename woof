@@ -34,6 +34,7 @@ import ConfigParser
 maxdownloads = 1
 CPID = -1
 COMPRESSED = True
+IPV6 = False
 
 def find_ip ():
     """
@@ -79,23 +80,35 @@ def find_ip ():
         return None
 
     if platform == "Linux":
+        if IPV6:
+            spliter = "inet6 addr:"
+        else:
+            spliter = "inet addr:"
         ifcfg = commands.getoutput ("LC_MESSAGES=C ifconfig "
-                                  + defiface[0]).split ("inet addr:")
+                                  + defiface[0]).split (spliter)
     elif platform in ("Darwin", "FreeBSD", "SunOS", "NetBSD"):
         ifcfg = commands.getoutput ("LC_MESSAGES=C ifconfig "
                                   + defiface[0]).split ("inet ")
 
-    if len (ifcfg) != 2:
+    if IPV6:
+        ifcfg_len = 3
+    else:
+        ifcfg_len = 2
+
+    if len (ifcfg) != ifcfg_len:
         return None
     ip_addr = ifcfg[1].split ()[0]
 
-    # sanity check
-    try:
-        ints = [ i for i in ip_addr.split (".") if 0 <= int(i) <= 255]
-        if len (ints) != 4:
+    if IPV6:
+        ip_addr = ip_addr.split('/')[0]
+    else:
+    # sanity check, only for ipv4 at the moment
+        try:
+            ints = [ i for i in ip_addr.split (".") if 0 <= int(i) <= 255]
+            if len (ints) != 4:
+                return None
+        except ValueError:
             return None
-    except ValueError:
-        return None
 
     return ip_addr
 
@@ -224,12 +237,15 @@ def serve_files (filename, maxdown = 1, ip_addr = '', port = 8080):
     """
     Launch HTTP server
     """
-    global maxdownloads
+    global maxdownloads, IPV6
     maxdownloads = maxdown
     # We have to somehow push the filename of the file to serve to the
     # class handling the requests. This is an evil way to do this...
 
     FileServHTTPRequestHandler.filename = filename
+
+    if IPV6:
+        BaseHTTPServer.HTTPServer.address_family = socket.AF_INET6
 
     try:
         httpd = BaseHTTPServer.HTTPServer ((ip_addr, port),
@@ -240,6 +256,7 @@ def serve_files (filename, maxdown = 1, ip_addr = '', port = 8080):
 
     if not ip_addr:
         ip_addr = find_ip ()
+        ip_addr = IPV6 and '[%s]' % ip_addr or ip_addr
     if ip_addr:
         print "Now serving on http://%s:%s/" % (ip_addr, httpd.server_port)
 
@@ -252,8 +269,8 @@ def usage (defport, defmaxdown, errmsg = None):
     """
     name = os.path.basename (sys.argv[0])
     print >> sys.stderr, """
-    Usage: %s [-i <ip_addr>] [-p <port>] [-c <count>] [-u] <file/dir>
-           %s [-i <ip_addr>] [-p <port>] [-c <count>] [-u] -s
+    Usage: %s [-i <ip_addr>] [-p <port>] [-c <count>] [-u] [-6] <file/dir>
+           %s [-i <ip_addr>] [-p <port>] [-c <count>] [-u] [-6] -s
 
     Serves a single file <count> times via http on port <port> on IP
     address <ip_addr>.
@@ -275,6 +292,7 @@ def usage (defport, defmaxdown, errmsg = None):
         count = 2
         ip = 127.0.0.1
         compressed = true
+        ipv6 = false
     """ % (name, name, name, defmaxdown, defport)
     if errmsg:
         print >> sys.stderr, errmsg
@@ -287,7 +305,7 @@ def main ():
     the http server
     """
 
-    global CPID, COMPRESSED
+    global CPID, COMPRESSED, IPV6
 
     maxdown = 1
     port = 8080
@@ -308,11 +326,14 @@ def main ():
     if config.has_option ('main', 'compressed'):
         COMPRESSED = config.getboolean ('main', 'compressed')
 
+    if config.has_option ('main', 'ipv6'):
+        IPV6 = config.getboolean ('main', 'ipv6')
+
     defaultport = port
     defaultmaxdown = maxdown
 
     try:
-        options, filenames = getopt.getopt (sys.argv[1:], "hsui:c:p:")
+        options, filenames = getopt.getopt (sys.argv[1:], "h6sui:c:p:")
     except getopt.GetoptError, desc:
         usage (defaultport, defaultmaxdown, desc)
 
@@ -340,6 +361,8 @@ def main ():
             usage (defaultport, defaultmaxdown)
         elif option == '-u':
             COMPRESSED = False
+        elif option == '-6':
+            IPV6 = True
         else:
             usage (defaultport, defaultmaxdown, "Unknown option: %r" % option)
 
@@ -357,6 +380,8 @@ def main ():
     if not is_read(filename):
         usage (defaultport, defaultmaxdown,
                "%s: Check read permission" % filenames[0])
+    if IPV6:
+        ip_addr = ''
 
     serve_files (filename, maxdown, ip_addr, port)
 
