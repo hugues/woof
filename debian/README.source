@@ -1,0 +1,13 @@
+woof for Debian
+---------------
+
+woof is composed by a single file taken from the author's website at
+http://www.home.unix-ag.org/simon/woof.html.
+
+It has been tarred and gzipped, and given a version number based on the release
+date, as indicated in the author's website.
+
+You can obtain an .orig.tar.gz using get-orig-source as follow:
+$ ./debian/rules get-orig-source
+
+

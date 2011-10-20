@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+
+%:
+	dh  $@
+
+SRC_VERSION := $(shell dpkg-parsechangelog | sed -ne 's/^Version: \(\([0-9]\+\):\)\?\(.*\)-.*/\3/p')
+TARBALL = woof_$(SRC_VERSION).orig.tar.gz
+.PHONY: get-orig-source
+get-orig-source:
+	rm -rf get-orig-source $(TARBALL)
+	mkdir -p get-orig-source/woof_$(SRC_VERSION)
+	cp CHANGELOG get-orig-source/woof_$(SRC_VERSION)/
+	wget -O get-orig-source/woof_$(SRC_VERSION)/woof  http://www.home.unix-ag.org/simon/woof
+	chmod +x get-orig-source/woof_$(SRC_VERSION)/woof
+	GZIP='--best --no-name' tar czf $(TARBALL) -C get-orig-source woof_$(SRC_VERSION)
+	rm -rf get-orig-source

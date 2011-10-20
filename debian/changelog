@@ -1,0 +1,13 @@
+woof (20091227-2) unstable; urgency=low
+
+  * debian/patches added:
+    - 0001-fixes-python27-crash.patch (LP: #841408)
+    - 0002-adds-stdin-support.patch (Closes: #638635) Thanks to Hugues Hiegel
+
+ -- Andrea Gasparini <gaspa@yattaweb.it>  Tue, 13 Sep 2011 23:40:42 +0200
+
+woof (20091227-1) unstable; urgency=low
+
+  * Initial release (Closes: #595820).
+
+ -- Andrea Colangelo <warp10@ubuntu.com>  Sun, 12 Sep 2010 01:03:11 +0200

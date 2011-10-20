@@ -1,0 +1,27 @@
+Source: woof
+Section: net
+Priority: optional
+Maintainer: Andrea Gasparini <gaspa@yattaweb.it>
+Uploaders: Andrea Colangelo <warp10@ubuntu.com>
+Build-Depends: debhelper (>= 7.0.50~), python-support (>= 0.90.0)
+Build-Depends-Indep: python
+Standards-Version: 3.9.2
+Homepage: http://www.home.unix-ag.org/simon/woof.html
+
+Package: woof
+Architecture: all
+Depends: ${python:Depends}, ${misc:Depends}
+Description: share files through HTTP protocol
+ Woof (Web Offer One File) is a tool to copy files among hosts. It can serve a
+ specified file on HTTP, just for a given number of times, and then exits.
+ .
+ It can be easily used to share files across the computers on a net, enough the
+ other ends have just a browser (that means you can share things between
+ different operating systems or different devices, even phones).
+ .
+ Features include:
+  * it can share stuff "one shot" and exit just after he served that file.
+  * it can share things among different operating system or different devices
+    (e.g.: a smartphone), and allows one to upload files easily.
+  * it can also show a simple html form in order to upload file (useful if the
+    client hasn't a way to serve the file).

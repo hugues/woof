@@ -1,0 +1,89 @@
+--- woof-20091227.orig/woof	2011-09-13 23:32:16.000000000 +0200
++++ woof-20091227/woof	2011-09-13 23:38:50.000000000 +0200
+@@ -123,7 +123,7 @@
+    server_version = "Simons FileServer"
+    protocol_version = "HTTP/1.0"
+ 
+-   filename = "."
++   filename = "-"
+ 
+    def log_request (self, code='-', size='-'):
+       if code == 200:
+@@ -272,9 +272,11 @@
+          type = "file"
+       elif os.path.isdir (self.filename):
+          type = "dir"
++      elif self.filename == "-":
++         type = "stdin"
+ 
+       if not type:
+-         print >> sys.stderr, "can only serve files or directories. Aborting."
++         print >> sys.stderr, "can only serve files, directories or stdin. Aborting."
+          sys.exit (1)
+ 
+       self.send_response (200)
+@@ -308,6 +310,9 @@
+                tfile.add (self.filename,
+                           arcname=os.path.basename(self.filename))
+                tfile.close ()
++         elif type == "stdin":
++             datafile = sys.stdin
++             shutil.copyfileobj (datafile, self.wfile)
+       except Exception, e:
+          print e
+          print >>sys.stderr, "Connection broke. Aborting"
+@@ -345,13 +350,14 @@
+ def usage (defport, defmaxdown, errmsg = None):
+    name = os.path.basename (sys.argv[0])
+    print >>sys.stderr, """
+-    Usage: %s [-i <ip_addr>] [-p <port>] [-c <count>] <file>
++    Usage: %s [-i <ip_addr>] [-p <port>] [-c <count>] [<file>]
+            %s [-i <ip_addr>] [-p <port>] [-c <count>] [-z|-j|-Z|-u] <dir>
+            %s [-i <ip_addr>] [-p <port>] [-c <count>] -s
+            %s [-i <ip_addr>] [-p <port>] [-c <count>] -U
+    
+     Serves a single file <count> times via http on port <port> on IP
+     address <ip_addr>.
++    When no filename is specified, or set to '-', then stdin will be read.
+     When a directory is specified, an tar archive gets served. By default
+     it is gzip compressed. You can specify -z for gzip compression, 
+     -j for bzip2 compression, -Z for ZIP compression or -u for no compression.
+@@ -388,6 +394,8 @@
+ def main ():
+    global cpid, upload, compressed
+ 
++   filename = '-'
++
+    maxdown = 1
+    port = 8080
+    ip_addr = ''
+@@ -473,18 +481,18 @@
+ 
+    else:
+       if len (filenames) == 1:
+-         filename = os.path.abspath (filenames[0])
+-      else:
+-         usage (defaultport, defaultmaxdown,
+-                "Can only serve single files/directories.")
++         if filenames[0] != "-":
++            filename = os.path.abspath (filenames[0])
+ 
+-      if not os.path.exists (filename):
+-         usage (defaultport, defaultmaxdown,
+-                "%s: No such file or directory" % filenames[0])
+-
+-      if not (os.path.isfile (filename) or os.path.isdir (filename)):
+-         usage (defaultport, defaultmaxdown,
+-                "%s: Neither file nor directory" % filenames[0])
++            if not os.path.exists (filename):
++               usage (defaultport, defaultmaxdown,
++                      "Can only serve single files/directories.")
++
++            if not (os.path.isfile (filename) or os.path.isdir (filename)):
++               usage (defaultport, defaultmaxdown,
++                      "%s: Neither file nor directory" % filenames[0])
++         else:
++            filename = "-"
+ 
+    serve_files (filename, maxdown, ip_addr, port)
+ 

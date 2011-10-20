@@ -1,0 +1,5 @@
+2009-12-27: Upload functionality, quite some code cleanup.
+2009-02-27: minor fix.
+2009-02-17: support for zip (without temp files!).
+2009-02-13: support for bz2, no dependency on an external "tar".
+2007-01-20: ancient woof version.

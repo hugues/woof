@@ -1,0 +1,55 @@
+.TH "woof" "1" "Last Modified: September 12, 2010"
+.SH NAME
+\fBwoof\fP \- A small, simple, stupid webserver to share files 
+
+.SH SYNOPSIS
+.B woof
+.RI [ options ] " file" 
+
+.SH DESCRIPTION
+\fBwoof\fP is a tool to copy files between hosts. It can 
+serve a specified file on HTTP,just for a given number of times, and then 
+shutdown. It can be easily used to share files across the computers on a 
+net, and given that the other ends should have just a browser, it can share 
+stuff between different operating system, or different devices (e.g.: a 
+smartphone). It can also show a simple html form in order to upload a file.
+commands.
+
+.SH OPTIONS
+A summary of options is included below.
+.TP
+.B \-h
+Show summary of options.
+.TP
+.B \-i <ip_addr>
+IP address to share the file
+.TP
+.B \-p <port>
+Port to be used to share the file
+.TP
+.B \-c <count>
+Number of times to share the file
+.TP
+.B \-z <dir>
+Used on a directory, it creates a tarball with gzip compression
+.TP
+.B \-j <dir>
+Used on a directory, it creates a tarball with bzip2 compression
+.TP
+.B \-Z <dir>
+Used on a directory, it creates a tarball with ZIP compression
+.TP
+.B \-u <dir>
+Used on a directory, it creates a tarball with no compression
+.TP
+.B \-s
+Used to distribute woof itself
+.TP
+.B \-U
+woof provides an upload form and allows uploading files
+
+.SH AUTHOR
+woof was written by Simon Budig <simon@budig.de>
+
+This manual page was written by Andrea Colangelo <warp10@ubuntu.com>,
+for the Debian project (and may be used by others).
