@@ -4,16 +4,22 @@
 
 .SH SYNOPSIS
 .B woof
-.RI [ options ] " file" 
+.RI [ OPTIONS ]
+.RI [ FILE ]
 
 .SH DESCRIPTION
-\fBwoof\fP is a tool to copy files between hosts. It can 
-serve a specified file on HTTP,just for a given number of times, and then 
-shutdown. It can be easily used to share files across the computers on a 
-net, and given that the other ends should have just a browser, it can share 
-stuff between different operating system, or different devices (e.g.: a 
-smartphone). It can also show a simple html form in order to upload a file.
-commands.
+\fBwoof\fP is a tool to copy files between hosts.
+
+It can serve a specified FILE on HTTP, just for a given number of times, and
+then shutdown. It can be easily used to share files across the computers on
+a net, and given that the other ends should have just a browser, it can
+share stuff between different operating system, or different devices (e.g.:
+a smartphone). It can also show a simple html form in order to upload a
+FILE.
+
+With no FILE, or when FILE is -, read standard input.
+
+When FILE is a folder, share a tarball named FILE.tar.gz.
 
 .SH OPTIONS
 A summary of options is included below.
