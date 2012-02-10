@@ -37,6 +37,7 @@ maxdownloads = 1
 TM = object
 compressed = 'gz'
 upload = False
+tmpdir = None
 
 
 class EvilZipStreamWrapper(TM):
@@ -112,7 +113,24 @@ def find_ip ():
 
    return candidates[0]
 
-   
+
+# Subclassing FieldStorage in order to permit configuration of the 
+# temporary file while uploading.
+# The class accept the new "tmpdir" argument.
+
+class ConfigFieldStorage(cgi.FieldStorage):
+    def __init__(self, fp=None, headers=None, outerboundary="",
+                 environ=os.environ, keep_blank_values=0, strict_parsing=0,
+                 tmpdir=None):
+        self.destdir = tmpdir
+        cgi.FieldStorage.__init__(self,fp, headers, outerboundary,
+                 environ, keep_blank_values, strict_parsing)
+
+    def make_file(self, binary=None):
+        import tempfile
+        return tempfile.TemporaryFile("w+b",dir=self.destdir)
+
+
 # Main class implementing an HTTP-Requesthandler, that serves just a single
 # file and redirects all other requests to this file (this passes the actual
 # filename to the client).
@@ -131,7 +149,7 @@ class FileServHTTPRequestHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 
 
    def do_POST (self):
-      global maxdownloads, upload
+      global maxdownloads, upload, tmpdir
 
       if not upload:
          self.send_error (501, "Unsupported method (POST)")
@@ -146,11 +164,11 @@ class FileServHTTPRequestHandler (BaseHTTPServer.BaseHTTPRequestHandler):
       # http://mail.python.org/pipermail/python-list/2006-September/402441.html
 
       ctype, pdict = cgi.parse_header (self.headers.getheader ('Content-Type'))
-      form = cgi.FieldStorage (fp = self.rfile,
+      form = ConfigFieldStorage (fp = self.rfile,
                                headers = self.headers,
                                environ = {'REQUEST_METHOD' : 'POST'},
                                keep_blank_values = 1,
-                               strict_parsing = 1)
+                               strict_parsing = 1, tmpdir = tmpdir)
       if not form.has_key ("upfile"):
          self.send_error (403, "No upload provided")
          return
@@ -427,7 +445,7 @@ def main ():
    defaultmaxdown = maxdown
 
    try:
-      options, filenames = getopt.getopt (sys.argv[1:], "hUszjZui:c:p:")
+      options, filenames = getopt.getopt (sys.argv[1:], "hUszjZui:c:p:d:")
    except getopt.GetoptError, desc:
       usage (defaultport, defaultmaxdown, desc)
 
@@ -469,6 +487,10 @@ def main ():
          compressed = 'zip'
       elif option == '-u':
          compressed = ''
+
+      elif option == "-d":
+         if os.path.isdir(val):
+            tmpdir = val
 
       else:
          usage (defaultport, defaultmaxdown, "Unknown option: %r" % option)
